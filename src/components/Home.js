@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { BiDotsVerticalRounded } from "react-icons/bi";
 import { AiOutlineSearch } from "react-icons/ai";
-import {  databases } from "../appwrite/AppwriteConfig";
+import { databases } from "../appwrite/AppwriteConfig";
 import AddEmployeePopUp from "./AddEmployeePopUp";
 import EditEmployeePopUp from "./EditEmployeePopUp";
+import { v4 as uuidv4 } from "uuid";
 
 const Home = () => {
   const [employeeList, setEmployeeList] = useState([]); //list employee
@@ -20,13 +21,43 @@ const Home = () => {
   };
 
   //add New Empaloyee
-  const addEmployee = (name, image, designation, phoneno, email) => {
-    const newEmployee = [
-      ...employeeList,
-      { name, image, designation, phoneno, email },
-    ];
-    setEmployeeList(newEmployee);
+  // const addEmployee = (name, image, designation, phoneno, email,date) => {
+  //   const newEmployee = [
+  //     ...employeeList,
+  //     { name, image, designation, phoneno, email,date },
+  //   ];
+  //   setEmployeeList(newEmployee);
+  // };
+
+  const addEmployee = (name, image, designation, phoneno, email, date) => {
+    console.log("Image URL:", image);
+    const documentData = {
+      name,
+      image,
+      designation,
+      phoneno,
+      email,
+      date,
+    };
+
+    const databaseId = "64ae4c5d32dcaa3dce06";
+    const collectionId = "64ae4c7248d525f062c3";
+    const documentId = uuidv4(); // Generate a unique document ID using uuidv4()
+
+    databases
+      .createDocument(databaseId, collectionId, documentId, documentData)
+      .then((response) => {
+        const newEmployee = {
+          $id: response.$id,
+          ...documentData,
+        };
+        setEmployeeList([...employeeList, newEmployee]);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
+
   //icon popup
 
   const handleIconpopup = (index) => {
@@ -41,11 +72,30 @@ const Home = () => {
 
   //Delete
 
+  // const removeTask = (index) => {
+  //   const newEmployee = [...employeeList];
+  //   newEmployee.splice(index, 1);
+  //   setEmployeeList(newEmployee);
+  //   setSelectedEmployeeIndex(null);
+  // };
   const removeTask = (index) => {
-    const newEmployee = [...employeeList];
-    newEmployee.splice(index, 1);
-    setEmployeeList(newEmployee);
-    setSelectedEmployeeIndex(null);
+    const documentId = employeeList[index].$id;
+
+    databases
+      .deleteDocument(
+        "64ae4c5d32dcaa3dce06",
+        "64ae4c7248d525f062c3",
+        documentId
+      )
+      .then(() => {
+        const newEmployeeList = [...employeeList];
+        newEmployeeList.splice(index, 1);
+        setEmployeeList(newEmployeeList);
+        setSelectedEmployeeIndex(null);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
 
   //save
@@ -58,39 +108,17 @@ const Home = () => {
       };
       return updatedList;
     });
-    setEmployeeDetails(updatedEmployee); //update on left side too
+    if (
+      !selectedEmployeeIndex ||
+      selectedEmployeeIndex === updatedEmployee.$id
+    ) {
+      setEmployeeDetails(updatedEmployee);
+    }
+
+    // setEmployeeDetails(updatedEmployee); // Update the employee details state
     setShowEditPopUp(false);
     setSelectedEmployeeIndex(null);
   };
-
-  // //add employee using Appwrite
-  // const addEmployee = async (name, image, designation, phoneno, email) => {
-  //   try {
-  //     // Create a new document 
-  //     const response = await databases.createDocument('64ae4c5d32dcaa3dce06', '64ae4c7248d525f062c3', {
-  //       name,
-  //       image,
-  //       designation,
-  //       phoneno,
-  //       email
-  //     });
-
-  //     
-  //     if (response.$id) {
-  //       const newEmployee = {
-  //         id: response.$id,
-  //         name,
-  //         image,
-  //         designation,
-  //         phoneno,
-  //         email
-  //       };
-  //       setEmployeeList([...employeeList, newEmployee]);
-  //     }
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
 
   useEffect(() => {
     const promise = databases.listDocuments(
@@ -144,7 +172,7 @@ const Home = () => {
         <div className="flex-grow   max-w-full mt-15">
           <div className="header bg-slate-100 text-left flex justify-between ">
             <div className="py-3 ml-5">
-              <h1 className="text-xl py-4" >People {employeeList.length} </h1>
+              <h1 className="text-xl py-4">People {employeeList.length} </h1>
 
               <div className="flex relative ">
                 <input

@@ -1,4 +1,4 @@
-    import { Client, Account, Databases } from 'appwrite';
+    import { Client, Account, Databases,ID } from 'appwrite';
 
     const client = new Client()
     client.setEndpoint('https://cloud.appwrite.io/v1') // Your API Endpoint
@@ -9,6 +9,7 @@
         //Databases
 
         export const databases = new Databases(client,"64ae4c7248d525f062c3");
+        export const documentId = ID.unique();
 
 
 
