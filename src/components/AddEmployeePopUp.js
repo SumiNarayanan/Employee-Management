@@ -23,7 +23,7 @@ const AddEmployeePopUp = ({ addEmployee, onClose }) => {
     onClose();
   };
 
-  // Call the Appwrite API to create a new document
+ 
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-60 ">
